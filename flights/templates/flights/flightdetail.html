@@ -1,0 +1,28 @@
+{% if req_flight %}
+    <ul>
+        <li>{{ req_flight.just_date }}</li>
+        <li>{{ req_flight.callsign }}</li>
+        <li>{{ req_flight.cid }}</li>
+        <li>{{ req_flight.planned_aircraft }}</li>
+        <li>{{ req_flight.planned_tascruise }}</li>
+        <li>{{ req_flight.planned_depairport }}</li>
+        <li>{{ req_flight.planned_altitude }}</li>
+        <li>{{ req_flight.planned_destairport }}</li>
+        <li>{{ req_flight.planned_deptime }}</li>
+        <li>{{ req_flight.planned_actdeptime }}</li>
+        <li>{{ req_flight.planned_altairport }}</li>
+        <li>{{ req_flight.planned_remarks }}</li>
+        <li>{{ req_flight.planned_route }}</li>
+        <li>{{ req_flight.time_logon }}</li>
+        <li>{{ req_flight.Routestring }}</li>
+        <li>{{ req_flight.duration }}</li>
+        <li>{{ req_flight.total_distance }}</li>
+        <li>{{ req_flight.outRamp }}</li>
+        <li>{{ req_flight.offGround }}</li>
+        <li>{{ req_flight.onGround }}</li>
+        <li>{{ req_flight.inGate }}</li>
+        <li>{{ req_flight.groundTime }}</li>
+    </ul>
+{% else %}
+    <p>There is no flight that matches these criteria.</p>
+{% endif %}
