@@ -1,0 +1,9 @@
+{% if user_objs %}
+    <ul>
+    {% for user in user_objs %}
+        <li><a href="/users/{{ user.cid }}/">{{ user.realname }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>Ain't no users.</p>
+{% endif %}
