@@ -243,7 +243,7 @@ class Command(NoArgsCommand):
 
             #Get Destination Airport Coords
             try:
-                print "poop"
+
                 destAirport = Airports.objects.get(icao=destairport)
                 destLat = destAirport.lat
                 destlon = destAirport.lon
@@ -295,7 +295,7 @@ class Command(NoArgsCommand):
             #flight.offGround = datetime.datetime.utcnow()
             #flight.onGround = datetime.datetime.utcnow()
             #flight.inGate = datetime.datetime.utcnow()
-            #flight.groundTime = 0123
+            flight.groundTime = 0123
 
             flight.save()
 
