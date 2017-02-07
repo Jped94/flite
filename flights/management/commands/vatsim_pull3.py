@@ -209,6 +209,8 @@ class Command(NoArgsCommand):
             #create the new flight
             newFlight = Flights(just_date = vjust_date, callsign = vcallsign, cid = vcid, planned_aircraft = vplanned_aircraft, planned_tascruise = vplanned_tascruise, planned_depairport = vplanned_depairport, planned_altitude = vplanned_altitude, planned_destairport = vplanned_destairport, planned_deptime = vplanned_deptime, planned_actdeptime = vplanned_actdeptime, planned_altairport = vplanned_altairport, planned_remarks = vplanned_remarks, planned_route = vplanned_route, Routestring = vRoutestring, duration = vduration, total_distance = vtotal_distance, time_logon = vtime_logon, offGround = voffGround, outRamp = voutRamp)
             newFlight.save()
+
+            #these are not dealt with here:
         	#onGround
         	#inGate
         	#groundTime
@@ -216,6 +218,96 @@ class Command(NoArgsCommand):
         #self.stdout.write(vjust_date + vcallsign + vcid + vplanned_aircraft + str(vplanned_tascruise) + vplanned_depairport + str(vplanned_altitude) + vplanned_destairport + vplanned_deptime + vplanned_actdeptime + vduration + vplanned_altairport + vplanned_remarks + vplanned_route + vtime_logon, ending='')
         #self.stdout.write(str(vjust_date) + "|||" + str(vplanned_deptime) + "|||" + str(vplanned_actdeptime) + "|||" + str(vduration) + "|||" + str(vtime_logon) + "\n", ending='')
 
+        else:
+            ##Update the flight object
+            flight = Flights.objects.get(just_date = vjust_date, callsign = vcallsign, cid = vcid)
+
+            #variables for this section:
+            uRouteString = flight.Routestring
+            uduration = datetime.datetime.min - datetime.datetime.min
+            utotal_distance = flight.total_distance
+            uoutRamp = flight.outRamp
+            uoffGround = flight.offGround
+            uonGround = flight.onGround
+            ugroundTime = flight.groundTime
+
+            colonCount = 0
+            colon1 = 0
+            colon2 = 0
+            comma = 0
+            rString = flight.Routestring
+            try:
+                for i in range(len(rString), 0, -1):
+                    if ((uRouteString == ";") and (colonCount == 0)):
+                        colon1 = i
+                        colonCount +=1
+                    elif ((uRouteString == ",") and (colonCount == 1)):
+                        comma = i
+                    elif ((uRouteString == ";") and (colonCount == 1)):
+                        colon2 = i
+                prevLat = decimal(uRouteString[colon2+1:comma])
+                prevLon = decimal(uRouteString[comma+1:colon1])
+
+                #Update Total Distance
+                flight.total_distance = flight.total_distance + getNmFromLatLon(lat, lon, prevLat, prevLon)
+
+            except Exception, e:
+                flight.total_distance = flight.total_distance + 0
+
+            #Update Route String
+            #flight.Routestring = F('Routestring') + str(vRoutestring)
+            flight.Routestring = flight.Routestring + str(vRoutestring)
+            if ((flight.outRamp == None) and (vgroundspeed < 50) and flight.offGround == None):
+                flight.outRamp = update_time
+                flightStatus = "On The Ground"
+            if ((flight.offGround == None) and (vgroundspeed > 50)):
+                flight.offGround = update_time
+                flightStatus = "Airborne"
+
+            #Get Destination Airport Coords
+
+
+            #########
+            #########
+            #SECTION IN COMMENTS NEEDS TO BE FIXED
+            
+            '''
+            try:
+
+                destAirport = Airports.objects.get(icao=vplanned_destairport)
+            except Exception as e:
+                print "%s" % vplanned_destairport
+
+            try:
+
+                destAirport = Airports.objects.get(icao=vplanned_destairport)
+                destLat = destAirport.lat
+                destlon = destAirport.lon
+
+                #Update Total Duration
+                if ((flight.onGround == None) and (vgroundspeed< 50) and (getNmFromLatLon(lat, lon, destLat, destlon) < 5)):
+                    flight.onGround = update_time
+                    flightStatus = "Arrived"
+                    flight.duration = datetime.datetime.utcnow() #changed
+
+
+                if ((flight.offGround != None) and (flight.onGround == None)):
+                    dtfoffGround = datetime.datetime.strptime(flight.offGround[:len(flight.offGround)-5], "%Y-%m-%d %H:%M:%S")
+                    flight.duration = str(datetime.datetime.utcnow() - dtfoffGround)
+                    #flight_duration = str(flight_duration)
+
+                if ((flight.offGround != None) and (flight.outRamp != None)):
+                    #get rid of timezones and converting the strings to datetime format
+                    offGx = datetime.datetime.strptime(uoffGround[:len(uoffGround)-5], "%Y-%m-%d %H:%M:%S")
+                    outRx = datetime.datetime.strptime(uoutRamp[:len(uoutRamp)-5], "%Y-%m-%d %H:%M:%S")
+                    gTime = offGx - outRx
+                    gTime = gTime.total_seconds()
+                    flight.groundTime = gTime
+            except Exception as e:
+                port = Airports.objects.get(icao="KBOS")
+            '''
+
+            flight.save()
     def readVatsim(self):
         client_rows = []
         newUpdate = True
