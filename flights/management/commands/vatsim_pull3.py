@@ -42,9 +42,10 @@ class Command(NoArgsCommand):
     help = "Scrapes flight info from Vatsim"
 
     def pilotInsert(self, row, update_time):
-
         #just_date
         vjust_date = update_time[0:10]
+        vjust_date = datetime.datetime.strptime(vjust_date, "%Y-%m-%d")
+        vjust_date = vjust_date.date()
 
         #callsign
         vcallsign = row[0]
@@ -69,23 +70,28 @@ class Command(NoArgsCommand):
         if (row[7] != ''):
             vplanned_altitude = int(row[7])
         else:
-            vplanned_altitude = ''
+            vplanned_altitude = 0
 
     	#planned_destairport
         vplanned_destairport = row[13]
 
     	#planned_deptime
         vplanned_deptime = row[22][0:2] + ":" + row[22][2:4]
+        try:
+            vplanned_deptime = datetime.datetime.strptime(vplanned_deptime, "%H:%M").time()
+        except Exception, e:
+            vplanned_deptime = None
 
     	#planned_actdeptime
         #duration
+        vplanned_actdeptime = row[23][0:2] + ":" + row[23][2:4]
         try:
-            vplanned_actdeptime = datetime.datetime.strptime(deptime, "%H:%M")
-            vduration = datetime.datetime.utcnow() - datetime.combine(date.today(), fdeptime)
-            vduration = str(flight_duration)
+            vplanned_actdeptime = datetime.datetime.strptime(vplanned_actdeptime, "%H:%M").time()
+            vduration = datetime.datetime.utcnow() - datetime.combine(date.today(), vplanned_actdeptime)
+            vduration = str(vduration)
         except Exception, e:
-            vplanned_actdeptime = ''
-            vduration = "00:00"
+            vplanned_actdeptime = None
+            vduration = datetime.time(0)
 
 
     	#planned_altairport
@@ -102,17 +108,114 @@ class Command(NoArgsCommand):
         vtime_logon = logon[0:4] + "-" + logon[4:6] + "-" + logon[6:8] + " " + logon[8:10] + ":" + logon[10:12] + ":" + logon[12:14] + "+0000"
 
     	#Routestring
-    	#duration
-    	#total_distance
-    	#day_night
-    	#outRamp
-    	#offGround
-    	#onGround
-    	#inGate
-    	#groundTime
+        if (row[6] != ''):
+            lon = Decimal(row[6])
+        else:
+            lon = ''
 
-        self.stdout.write(vjust_date + vcallsign + vcid + vplanned_aircraft + str(vplanned_tascruise) + vplanned_depairport + str(vplanned_altitude) + vplanned_destairport + vplanned_deptime + vplanned_actdeptime + vduration + vplanned_altairport + vplanned_remarks + vplanned_route + vtime_logon, ending='')
-        #self.stdout.write(vjust_date + vcallsign + vcid + vplanned_aircraft + str(vplanned_tascruise) + vplanned_depairport + str(vplanned_altitude) + vplanned_destairport + vplanned_deptime + vplanned_actdeptime, ending='')
+        if (row[5] != ''):
+            lat = Decimal(row[5])
+        else:
+            lat = ''
+        vRoutestring = str(lat) + "," + str(lon) + ";"
+
+    	#total_distance we will deal with when dealing with flights Table
+
+    	#day_night
+        vday_night = 0
+
+
+        ##personal variables
+
+        #pilot_rating
+        if (row[16] != ''):
+            vpilot_rating = int(row[16])
+        else:
+            vpilot_rating = ''
+        if (vpilot_rating == 0):
+            vpilot_rating = 'Not Rated'
+        elif (vpilot_rating == 1):
+            vpilot_rating = 'VATSIM Online Pilot'
+        elif (vpilot_rating == 2):
+            vpilot_rating = 'VATSIM Airmanship Basics'
+        elif (vpilot_rating == 3):
+            vpilot_rating = 'VATSIM VFR Pilot'
+        elif (vpilot_rating == 4):
+            vpilot_rating = 'VATSIM IFR Pilot'
+        elif (vpilot_rating == 5):
+            vpilot_rating = 'VATSIM Advanced IFR Pilot'
+        elif (vpilot_rating == 6):
+            vpilot_rating= 'VATSIM International and Oceanic Pilot'
+        elif (vpilot_rating == 7):
+            vpilot_rating = 'Helicopter VFR and IFR Pilot'
+        elif (vpilot_rating == 8):
+            vpilot_rating = 'Military Special Operations Pilot'
+        elif (vpilot_rating== 9):
+            vpilot_rating = 'VATSIM Pilot Flight Instructor'
+
+        #realname
+        vrealname = row[2]
+
+        #ActiveFlights Variables
+
+        #groundspeed
+        if (row[8] != ''):
+            vgroundspeed = int(row[8])
+        else:
+            vgroundspeed = ''
+
+        #Personal TABLE - INSERT OR UPDATE
+        #########################
+        #########################
+        if (Personal.objects.filter(cid=vcid).exists() == False):
+            newPersonal = Personal(cid = vcid, realname = vrealname, pilot_rating = vpilot_rating)
+            newPersonal.save()
+        else:
+            personal = Personal.objects.get(cid=vcid)
+            if (personal.pilot_rating != vpilot_rating):
+                personal.pilot_rating = vpilot_rating
+                personal.save()
+
+
+        #Flights TABLE - INSERT OR UPDATE
+        #########################
+        #########################
+        if (Flights.objects.filter(just_date = vjust_date, callsign = vcallsign, cid = vcid).exists() == False):
+            #Flight object for this flight doesn't exist yet. Let's create one
+
+            #Let's deal with the rest of the properties of Flights
+            #total_distance
+            try:
+                origAirport = Airports.objects.get(icao=vplanned_depairport)
+                origLat = origAirport.lat
+                origLon = origAirport.lon
+                vtotal_distance = getNmFromLatLon(lat, lon, origLat, origLon)
+            except Exception, e:
+                vtotal_distance = 0
+
+            #outRamp
+            if (vgroundspeed < 50):
+                voutRamp = update_time
+            else:
+                voutRamp = None
+
+        	#offGround
+            if (vgroundspeed > 50):
+                voffGround = update_time
+            else:
+                voffGround = None
+
+
+            #create the new flight
+            newFlight = Flights(just_date = vjust_date, callsign = vcallsign, cid = vcid, planned_aircraft = vplanned_aircraft, planned_tascruise = vplanned_tascruise, planned_depairport = vplanned_depairport, planned_altitude = vplanned_altitude, planned_destairport = vplanned_destairport, planned_deptime = vplanned_deptime, planned_actdeptime = vplanned_actdeptime, planned_altairport = vplanned_altairport, planned_remarks = vplanned_remarks, planned_route = vplanned_route, Routestring = vRoutestring, duration = vduration, total_distance = vtotal_distance, time_logon = vtime_logon, offGround = voffGround, outRamp = voutRamp)
+            newFlight.save()
+        	#onGround
+        	#inGate
+        	#groundTime
+
+        #self.stdout.write(vjust_date + vcallsign + vcid + vplanned_aircraft + str(vplanned_tascruise) + vplanned_depairport + str(vplanned_altitude) + vplanned_destairport + vplanned_deptime + vplanned_actdeptime + vduration + vplanned_altairport + vplanned_remarks + vplanned_route + vtime_logon, ending='')
+        #self.stdout.write(str(vjust_date) + "|||" + str(vplanned_deptime) + "|||" + str(vplanned_actdeptime) + "|||" + str(vduration) + "|||" + str(vtime_logon) + "\n", ending='')
+
     def readVatsim(self):
         client_rows = []
         newUpdate = True

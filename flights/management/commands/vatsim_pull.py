@@ -114,8 +114,7 @@ class Command(NoArgsCommand):
 
         real_name = row[2]
         date_time = updateTime
-        just_date = date_time[0:10]
-        jd = just_date
+
         flight_date = datetime.datetime.strptime(just_date, "%Y-%m-%d")
         flight_date = flight_date.date() #change here
         client_type = "Pilot"
@@ -126,13 +125,7 @@ class Command(NoArgsCommand):
 
         deptime = row[22][0:2] + ":" + row[22][2:4]
         #Some of the deptimes come in in a format that gets screwy, so lets check for that
-        try:
-            fdeptime = datetime.datetime.strptime(deptime, "%H:%M")
-            flight_duration = datetime.datetime.utcnow() - datetime.combine(date.today(), fdeptime)
-            flight_duration = str(flight_duration)
-        except Exception, e:
-            deptime = None
-            flight_duration = "00:00"
+
 
 
         actdeptime = row[23][0:2] + ":" + row[23][2:4]
