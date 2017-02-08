@@ -66,10 +66,9 @@ class Command(NoArgsCommand):
         vplanned_depairport = row[11]
 
     	#planned_altitude
-
-        if (row[7] != ''):
-            vplanned_altitude = int(row[7])
-        else:
+        try:
+            vplanned_altitude = int(row[12])
+        except Exception, e:
             vplanned_altitude = 0
 
     	#planned_destairport
@@ -124,6 +123,8 @@ class Command(NoArgsCommand):
     	#day_night
         vday_night = 0
 
+        #flight_status
+        flightstatus = ""
 
         ##personal variables
 
@@ -265,21 +266,7 @@ class Command(NoArgsCommand):
                 flightStatus = "Airborne"
 
             #Get Destination Airport Coords
-
-
-            #########
-            #########
-            #SECTION IN COMMENTS NEEDS TO BE FIXED
-            
-            '''
             try:
-
-                destAirport = Airports.objects.get(icao=vplanned_destairport)
-            except Exception as e:
-                print "%s" % vplanned_destairport
-
-            try:
-
                 destAirport = Airports.objects.get(icao=vplanned_destairport)
                 destLat = destAirport.lat
                 destlon = destAirport.lon
@@ -290,24 +277,83 @@ class Command(NoArgsCommand):
                     flightStatus = "Arrived"
                     flight.duration = datetime.datetime.utcnow() #changed
 
+            except Exception as e:
+                str(e)
+
+            try:
 
                 if ((flight.offGround != None) and (flight.onGround == None)):
-                    dtfoffGround = datetime.datetime.strptime(flight.offGround[:len(flight.offGround)-5], "%Y-%m-%d %H:%M:%S")
-                    flight.duration = str(datetime.datetime.utcnow() - dtfoffGround)
-                    #flight_duration = str(flight_duration)
-
-                if ((flight.offGround != None) and (flight.outRamp != None)):
-                    #get rid of timezones and converting the strings to datetime format
-                    offGx = datetime.datetime.strptime(uoffGround[:len(uoffGround)-5], "%Y-%m-%d %H:%M:%S")
-                    outRx = datetime.datetime.strptime(uoutRamp[:len(uoutRamp)-5], "%Y-%m-%d %H:%M:%S")
-                    gTime = offGx - outRx
-                    gTime = gTime.total_seconds()
-                    flight.groundTime = gTime
+                    tz_info = flight.offGround.tzinfo
+                    flight.duration = str(datetime.datetime.now(tz_info) - flight.offGround)
             except Exception as e:
-                port = Airports.objects.get(icao="KBOS")
-            '''
+                print str(e)
+
+            if ((flight.offGround != None) and (flight.outRamp != None)):
+                #get rid of timezones and converting the strings to datetime format
+                #print flight.offGround
+                outRampshort = str(flight.outRamp)
+                offGroundshort = str(flight.offGround)
+                outRampshort = datetime.datetime.strptime(outRampshort[:len(outRampshort)-6], "%Y-%m-%d %H:%M:%S")
+                offGroundshort = datetime.datetime.strptime(offGroundshort[:len(offGroundshort)-6], "%Y-%m-%d %H:%M:%S")
+                gTime = offGroundshort - outRampshort
+                gTime = gTime.total_seconds()
+                flight.groundTime = gTime
 
             flight.save()
+
+
+
+
+        #Deal with ActiveFlights Table
+        #########################
+        #########################
+
+        #clienttype
+        vclienttype = "Pilot"
+
+        #server
+        vserver = row[14]
+
+        #altitude
+        if (row[7] != ''):
+            valtitude = int(row[7])
+        else:
+            valtitude = 0
+
+        #transponder
+        if (row[17] != ''):
+            vtransponder = int(row[17])
+        else:
+            vtransponder = 0
+
+        #heading
+        if (row[38] != ''):
+            vheading = int(row[38])
+        else:
+            vheading = 0
+
+        try:
+            aflight = ActiveFlights.objects.get(datetime = update_time, cid = vcid, callsign = vcallsign)
+            print "poop"
+        except Exception, e:
+            if (flightstatus == ""):
+                try:
+                    lastActive = ActiveFlights.objects.filter(cid = vcid, callsign = vcallsign).latest('datetime')
+                    flightstatus = lastActive.flight_status
+                except Exception, e:
+                    flightstatus = " "
+            newActive = ActiveFlights(datetime = update_time, cid = vcid, callsign = vcallsign, clienttype = vclienttype, latitude = lat, longitude = lon, server  = vserver, altitude = valtitude, groundspeed = vgroundspeed, transponder = vtransponder, heading = vheading, flight_status=flightstatus)
+            newActive.save()
+
+        try:
+            #ActiveFlights.objects.filter(cid = vcid, callsign = vcallsign).exclude(datetime = update_time)
+            print "hello?"
+            oldActive = ActiveFlights.objects.filter(cid = vcid, callsign = vcallsign).exclude(datetime = update_time)
+            oldActive.delete()
+        except Exception, e:
+            pass
+
+
     def readVatsim(self):
         client_rows = []
         newUpdate = True
