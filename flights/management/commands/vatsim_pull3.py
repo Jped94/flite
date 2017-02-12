@@ -517,10 +517,13 @@ class Command(NoArgsCommand):
             tz_info = flight.datetime.tzinfo
             if ((flight.datetime + timedelta(hours=1)) <= datetime.datetime.now(tz_info)):
                 flight.delete()
+
         ## Delete missing controllers
-        #missingController = ActiveFlights.objects.exclude(datetime = updateTime)
-        #for controller in missingController:
-        #    controller.delete()
+        missingController = ActiveControllers.objects.exclude(datetime = updateTime)
+        for controller in missingController:
+            tz_info = controller.datetime.tzinfo
+            if ((controller.datetime + timedelta(hours=1)) <= datetime.datetime.now(tz_info)):
+                controller.delete()
 
     # CSV READING BEGINS
     #
