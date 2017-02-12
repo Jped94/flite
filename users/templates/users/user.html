@@ -1,0 +1,72 @@
+{% load staticfiles %}
+<html>
+  <head>
+    <title>Flitesite</title>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'users/mystyle.css' %}">
+  </head>
+
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">
+          <img alt="Brand" src="{% static 'users/log_logo.png' %}" height="33" width= "89">
+        </a>
+      </div>
+    </div>
+  </nav>
+
+
+  <body>
+    {% if user_obj %}
+        <h3>This is the page for the user with CID {{user_obj.cid}}</h3>
+
+        <ul class="list-unstyled">
+            <li>Name: {{ user_obj.realname }}</li>
+            {% if user_obj.pilot_rating != "" %}
+              <li>Pilot Rating: {{ user_obj.pilot_rating }}</li>
+            {% else %}
+              <li>Pilot Rating: This user does not currently have a pilot rating</li>
+            {% endif %}
+
+            {% if user_obj.atc_rating != "" %}
+              <li>ATC Rating: {{ user_obj.atc_rating }}</li>
+            {% else %}
+              <li>ATC Rating: This user does not currently have an ATC rating</li>
+            {% endif %}
+
+        </ul>
+
+        <h3>Flights associated with this pilot</h3>
+        {% if flights_list %}
+        <table class="table">
+          <tr>
+            <th>Callsign</th>
+            <th>Date</th>
+            <th>Origin</th>
+            <th>Destination</th>
+          </tr>
+          {% for flight in flights_list %}
+          <tr>
+
+
+
+            <td><a href="{% url 'flightdetail' just_date=flight.just_date|date:'Y-m-d' callsign=flight.callsign cid=flight.cid %}">{{flight.callsign}}</a></td>
+            <td>{{flight.just_date}}</td>
+            <td>{{flight.planned_depairport}}</td>
+            <td>{{flight.planned_destairport}}</td>
+          </tr>
+
+          {% endfor %}
+        </table>
+        {% else %}
+        <p>There are no flights associated with this pilot</p>
+        {% endif %}
+
+    {% else %}
+        <p>Ain't no user here.</p>
+    {% endif %}
+  </body>
+
+</html>

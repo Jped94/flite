@@ -22,26 +22,6 @@ class ActiveFlights(models.Model):
 		return str(self.datetime) + self.callsign + self.cid
 
 
-'''class ActiveControllers(models.Model):
-	datetime = models.DateTimeField()
-	callsign = models.CharField(max_length=10)
-	cid = models.CharField(max_length=30)
-	clienttype = models.CharField(max_length=10)
-	frequency = models.DecimalField(max_digits=6, decimal_places=3)
-	latitude = models.DecimalField(max_digits=8, decimal_places=6)
-	longitude = models.DecimalField(max_digits=9, decimal_places=6)
-	server = models.CharField(max_length=15)
-	facilitytype = models.CharField(max_length=30)
-	visualrange = models.IntegerField()
-	time_logon = models.DateTimeField()
-
-	class Meta:
-		unique_together = ("datetime", "callsign", "cid")
-
-	def __str__(self):
-		return str(self.datetime) + self.callsign + self.cid
-'''
-
 class Flights(models.Model):
 	#autonumber
 	just_date = models.DateField()

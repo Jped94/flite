@@ -10,4 +10,11 @@ def flightdetail(request, just_date, callsign, cid):
     req_flight = Flights.objects.get(just_date = just_date, callsign = callsign, cid = cid)
     context = {'req_flight': req_flight}
     return render (request, 'flights/flightdetail.html', context)
+
+'''def flightdetail(request, id):
+
+    req_flight = Flights.objects.get(id = id)
+    context = {'req_flight': req_flight}
+    return render (request, 'flights/flightdetail.html', context)
+'''
 # Create your views here.
