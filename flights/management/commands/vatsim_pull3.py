@@ -60,7 +60,7 @@ class Command(NoArgsCommand):
         if (row[10] != ''):
             vplanned_tascruise = int(row[10])
         else:
-            vplanned_tascruise = ''
+            vplanned_tascruise = 0
 
     	#planned_depairport
         vplanned_depairport = row[11]
@@ -110,12 +110,12 @@ class Command(NoArgsCommand):
         if (row[6] != ''):
             lon = Decimal(row[6])
         else:
-            lon = ''
+            lon = 0.0
 
         if (row[5] != ''):
             lat = Decimal(row[5])
         else:
-            lat = ''
+            lat = 0.0
         vRoutestring = str(lat) + "," + str(lon) + ";"
 
     	#total_distance we will deal with when dealing with flights Table
@@ -126,13 +126,20 @@ class Command(NoArgsCommand):
         #flight_status
         flightstatus = ""
 
+        #altitudeString
+        if (row[7] != ''):
+            valtitudeString = row[7] + ";"
+        else:
+            valtitudeString = ""
+
+
         ##personal variables
 
         #pilot_rating
         if (row[16] != ''):
             vpilot_rating = int(row[16])
         else:
-            vpilot_rating = ''
+            vpilot_rating = -1
         if (vpilot_rating == 0):
             vpilot_rating = 'Not Rated'
         elif (vpilot_rating == 1):
@@ -163,7 +170,7 @@ class Command(NoArgsCommand):
         if (row[8] != ''):
             vgroundspeed = int(row[8])
         else:
-            vgroundspeed = ''
+            vgroundspeed = 0
 
         #Personal TABLE - INSERT OR UPDATE
         #########################
@@ -208,16 +215,13 @@ class Command(NoArgsCommand):
 
 
             #create the new flight
-            newFlight = Flights(just_date = vjust_date, callsign = vcallsign, cid = vcid, planned_aircraft = vplanned_aircraft, planned_tascruise = vplanned_tascruise, planned_depairport = vplanned_depairport, planned_altitude = vplanned_altitude, planned_destairport = vplanned_destairport, planned_deptime = vplanned_deptime, planned_actdeptime = vplanned_actdeptime, planned_altairport = vplanned_altairport, planned_remarks = vplanned_remarks, planned_route = vplanned_route, Routestring = vRoutestring, duration = vduration, total_distance = vtotal_distance, time_logon = vtime_logon, offGround = voffGround, outRamp = voutRamp)
+            newFlight = Flights(just_date = vjust_date, callsign = vcallsign, cid = vcid, planned_aircraft = vplanned_aircraft, planned_tascruise = vplanned_tascruise, planned_depairport = vplanned_depairport, planned_altitude = vplanned_altitude, planned_destairport = vplanned_destairport, planned_deptime = vplanned_deptime, planned_actdeptime = vplanned_actdeptime, planned_altairport = vplanned_altairport, planned_remarks = vplanned_remarks, planned_route = vplanned_route, Routestring = vRoutestring, duration = vduration, total_distance = vtotal_distance, time_logon = vtime_logon, offGround = voffGround, outRamp = voutRamp, altitudeString = valtitudeString)
             newFlight.save()
 
             #these are not dealt with here:
         	#onGround
         	#inGate
         	#groundTime
-
-        #self.stdout.write(vjust_date + vcallsign + vcid + vplanned_aircraft + str(vplanned_tascruise) + vplanned_depairport + str(vplanned_altitude) + vplanned_destairport + vplanned_deptime + vplanned_actdeptime + vduration + vplanned_altairport + vplanned_remarks + vplanned_route + vtime_logon, ending='')
-        #self.stdout.write(str(vjust_date) + "|||" + str(vplanned_deptime) + "|||" + str(vplanned_actdeptime) + "|||" + str(vduration) + "|||" + str(vtime_logon) + "\n", ending='')
 
         else:
             ##Update the flight object
@@ -256,7 +260,6 @@ class Command(NoArgsCommand):
                 flight.total_distance = flight.total_distance + 0
 
             #Update Route String
-            #flight.Routestring = F('Routestring') + str(vRoutestring)
             flight.Routestring = flight.Routestring + str(vRoutestring)
             if ((flight.outRamp == None) and (vgroundspeed < 50) and flight.offGround == None):
                 flight.outRamp = update_time
@@ -290,7 +293,6 @@ class Command(NoArgsCommand):
 
             if ((flight.offGround != None) and (flight.outRamp != None)):
                 #get rid of timezones and converting the strings to datetime format
-                #print flight.offGround
                 outRampshort = str(flight.outRamp)
                 offGroundshort = str(flight.offGround)
                 outRampshort = datetime.datetime.strptime(outRampshort[:len(outRampshort)-6], "%Y-%m-%d %H:%M:%S")
@@ -299,9 +301,10 @@ class Command(NoArgsCommand):
                 gTime = gTime.total_seconds()
                 flight.groundTime = gTime
 
+            #update altitude string
+            flight.altitudeString = flight.altitudeString + valtitudeString
+
             flight.save()
-
-
 
 
         #Deal with ActiveFlights Table
@@ -334,7 +337,6 @@ class Command(NoArgsCommand):
 
         try:
             aflight = ActiveFlights.objects.get(datetime = update_time, cid = vcid, callsign = vcallsign)
-            print "poop"
         except Exception, e:
             if (flightstatus == ""):
                 try:
@@ -347,11 +349,134 @@ class Command(NoArgsCommand):
 
         try:
             #ActiveFlights.objects.filter(cid = vcid, callsign = vcallsign).exclude(datetime = update_time)
-            print "hello?"
             oldActive = ActiveFlights.objects.filter(cid = vcid, callsign = vcallsign).exclude(datetime = update_time)
             oldActive.delete()
         except Exception, e:
             pass
+
+    def atcInsert(self, row, update_time):
+        #date_time = update_time
+        _date = update_time[0:10]
+
+        #realname
+        vrealname = row[2]
+
+        #atc_rating
+        if (row[16] != ''):
+            vatc_rating = int(row[16])
+        else:
+            vatc_rating = -1
+
+        if (vatc_rating == 1):
+            vatc_rating = 'Administrator'
+        elif (vatc_rating == 2):
+            vatc_rating = 'Supervisor'
+        elif (vatc_rating == 3):
+            vatc_rating = 'Senior Instructor'
+        elif (vatc_rating == 4):
+            vatc_rating = 'Instructor'
+        elif (vatc_rating == 5):
+            vatc_rating = 'Senior Controller'
+        elif (vatc_rating == 6):
+            vatc_rating = 'Enroute Controller'
+        elif (vatc_rating == 7):
+            vatc_rating = 'TMA Controller'
+        elif (vatc_rating == 8):
+            vatc_rating = 'Tower Controller'
+        elif (vatc_rating == 9):
+            vatc_rating = 'Ground Controller Student'
+        elif (vatc_rating == 10):
+            vatc_rating = 'Pilot/Observer'
+        #datetime
+        vdatetime = update_time
+
+        #callsign
+    	vcallsign = row[0]
+
+        #cid
+    	vcid = row[1]
+
+        #clienttype
+    	vclienttype = "ATC"
+
+        #frequency
+        if (row[4] != ''):
+            vfrequency = row[4]
+        else:
+            vfrequency = 0.0
+
+        #latitude
+    	vlatitude = row[5]
+
+        #longitude
+    	vlongitude = row[6]
+
+        #server
+    	vserver = row[15]
+
+        #facilitytype
+    	vfacilitytype = int(row[18])
+        if (vfacilitytype == 0):
+            vfacilitytype = 'Other'
+        elif (vfacilitytype == 1):
+            vfacilitytype = 'Observer'
+        elif (vfacilitytype == 2):
+            vfacilitytype = 'Clearance Delivery'
+        elif (vfacilitytype == 3):
+            vfacilitytype = 'Ground'
+        elif (vfacilitytype == 4):
+            vfacilitytype = 'Tower'
+        elif (vfacilitytype == 5):
+            vfacilitytype = 'Approach/Departure'
+        elif (vfacilitytype == 6):
+            vfacilitytype = 'Center'
+
+        #visualrange
+        if (row[19] != ''):
+            vvisualrange = int(row[19])
+        else:
+            vvisualrange = 0
+
+        #time_logon
+        logon = row[37]
+        vtime_logon = logon[0:4] + "-" + logon[4:6] + "-" + logon[6:8] + " " + logon[8:10] + ":" + logon[10:12] + ":" + logon[12:14] + "+0000"
+        vtime_logon2 = datetime.datetime.strptime(vtime_logon[:len(vtime_logon)-5], "%Y-%m-%d %H:%M:%S")
+        tz_info = vtime_logon2.tzinfo
+        vtotaltime = datetime.datetime.now(tz_info) - vtime_logon2
+        vtotaltime = str(vtotaltime)
+        stripped_update_time = datetime.datetime.strptime(update_time[:len(update_time)-5], "%Y-%m-%d %H:%M:%S")
+
+        if (Personal.objects.filter(cid=vcid).exists() == False):
+            newPersonal = Personal(cid = vcid, realname = vrealname, atc_rating = vatc_rating)
+            newPersonal.save()
+        else:
+            personal = Personal.objects.get(cid=vcid)
+            if (personal.atc_rating != vatc_rating):
+                personal.atc_rating = vatc_rating
+
+        if (ActiveControllers.objects.filter(cid=vcid, callsign=vcallsign, datetime=update_time).exists() == False):
+            newActiveATC = ActiveControllers(datetime=update_time, callsign=vcallsign, cid=vcid, clienttype=vclienttype, frequency=vfrequency, latitude=vlatitude, longitude=vlongitude, server=vserver, facilitytype=vfacilitytype, visualrange=vvisualrange, time_logon=vtime_logon)
+            newActiveATC.save()
+            #delete old active controller
+            oldActiveATC = ActiveControllers.objects.filter(cid=vcid, callsign = vcallsign).exclude(datetime = update_time)
+            oldActiveATC.delete()
+
+
+        if (Controllers.objects.filter(date=_date, callsign= vcallsign, cid = vcid).exists() == False):
+            newController = Controllers(date =_date, callsign = vcallsign, cid = vcid, facilitytype = vfacilitytype, TotalTime = vtotaltime, lastUpdate = update_time)
+            newController.save()
+        else:
+            controller = Controllers.objects.get(date=_date, callsign= vcallsign, cid=vcid)
+            if (stripped_update_time < vtime_logon2):
+                controller.TotalTime = controller.TotalTime + vtotaltime
+            else:
+                str_last_update = str(controller.lastUpdate)
+                stripped_last_update = datetime.datetime.strptime(str_last_update[:len(str_last_update)-6], "%Y-%m-%d %H:%M:%S")
+                totaltime_delta = (stripped_update_time - stripped_last_update)
+                controller.TotalTime  = (datetime.datetime.combine(datetime.date(1,1,1),controller.TotalTime) + totaltime_delta).time()
+
+            controller.lastUpdate = update_time
+            controller.save()
 
 
     def readVatsim(self):
@@ -382,15 +507,16 @@ class Command(NoArgsCommand):
             for row in client_rows:
                 if (row[3] == 'PILOT'):
                     self.pilotInsert(row, updateTime)
-                #elif (row[3] == 'ATC'):
-                #    self.atcInsert(row, updateTime)
+                elif (row[3] == 'ATC'):
+                    self.atcInsert(row, updateTime)
 
         ## Delete flights that have been missing for an hour
 
-        #notUpdated = ActiveFlights.objects.exclude(datetime = updateTime)
-        #for flight in notUpdated:
-            #if ((flight.datetime + timedelta(hours=1)) <= datetime.datetime.utcnow()):
-                #flight.delete()
+        notUpdated = ActiveFlights.objects.exclude(datetime = updateTime)
+        for flight in notUpdated:
+            tz_info = flight.datetime.tzinfo
+            if ((flight.datetime + timedelta(hours=1)) <= datetime.datetime.now(tz_info)):
+                flight.delete()
         ## Delete missing controllers
         #missingController = ActiveFlights.objects.exclude(datetime = updateTime)
         #for controller in missingController:

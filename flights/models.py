@@ -15,11 +15,32 @@ class ActiveFlights(models.Model):
 	transponder = models.IntegerField()
 	heading = models.IntegerField()
 	flight_status = models.CharField(max_length=20)
+	class Meta:
+		unique_together = ("datetime", "callsign", "cid")
+
 	def __str__(self):
 		return str(self.datetime) + self.callsign + self.cid
 
+
+'''class ActiveControllers(models.Model):
+	datetime = models.DateTimeField()
+	callsign = models.CharField(max_length=10)
+	cid = models.CharField(max_length=30)
+	clienttype = models.CharField(max_length=10)
+	frequency = models.DecimalField(max_digits=6, decimal_places=3)
+	latitude = models.DecimalField(max_digits=8, decimal_places=6)
+	longitude = models.DecimalField(max_digits=9, decimal_places=6)
+	server = models.CharField(max_length=15)
+	facilitytype = models.CharField(max_length=30)
+	visualrange = models.IntegerField()
+	time_logon = models.DateTimeField()
+
 	class Meta:
 		unique_together = ("datetime", "callsign", "cid")
+
+	def __str__(self):
+		return str(self.datetime) + self.callsign + self.cid
+'''
 
 class Flights(models.Model):
 	#autonumber
@@ -46,10 +67,12 @@ class Flights(models.Model):
 	onGround = models.DateTimeField(null = True)
 	inGate = models.DateTimeField(null = True)
 	groundTime = models.FloatField(null = True)
-	def __str__(self):
-		return str(self.just_date) + self.callsign + self.cid
+	altitudeString = models.TextField()
 	class Meta:
 		unique_together = ("just_date", "callsign", "cid")
+
+	def __str__(self):
+		return str(self.just_date) + self.callsign + self.cid
 
 class Aircrafts(models.Model):
 	id = models.IntegerField(primary_key=True)
