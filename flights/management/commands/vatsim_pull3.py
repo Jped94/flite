@@ -335,6 +335,13 @@ class Command(NoArgsCommand):
         else:
             vheading = 0
 
+        #flight_id
+        try:
+            associatedFlight = Flights.objects.get(just_date = vjust_date, cid = vcid, callsign = vcallsign)
+            vflight_id = associatedFlight.id
+        except Exception, e:
+            vflight_id = -1
+
         try:
             aflight = ActiveFlights.objects.get(datetime = update_time, cid = vcid, callsign = vcallsign)
         except Exception, e:
@@ -344,7 +351,7 @@ class Command(NoArgsCommand):
                     flightstatus = lastActive.flight_status
                 except Exception, e:
                     flightstatus = " "
-            newActive = ActiveFlights(datetime = update_time, cid = vcid, callsign = vcallsign, clienttype = vclienttype, latitude = lat, longitude = lon, server  = vserver, altitude = valtitude, groundspeed = vgroundspeed, transponder = vtransponder, heading = vheading, flight_status=flightstatus)
+            newActive = ActiveFlights(datetime = update_time, cid = vcid, callsign = vcallsign, clienttype = vclienttype, latitude = lat, longitude = lon, server  = vserver, altitude = valtitude, groundspeed = vgroundspeed, transponder = vtransponder, heading = vheading, flight_status=flightstatus, flight_id = vflight_id)
             newActive.save()
 
         try:

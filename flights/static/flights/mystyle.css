@@ -11,3 +11,9 @@ nav{
     padding-left: 15px;
     padding-right: 15px;
 }
+
+div.wrapper{
+  overflow:hidden;
+  overflow-y: scroll;
+  height: 80%; 
+}

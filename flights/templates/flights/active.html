@@ -1,0 +1,48 @@
+{% load staticfiles %}
+<html>
+  <head>
+    <title>Flitesite</title>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'flights/mystyle.css' %}">
+  </head>
+
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">
+          <img alt="Brand" src="{% static 'users/log_logo.png' %}" height="33" width= "89">
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <body>
+    <h1>Active Flights</h1>
+
+    {% if actives %}
+    <div class="wrapper">
+      <table class="table">
+        <tr>
+          <th>Callsign</th>
+          <th>CID</th>
+          <th>Date and Time</th>
+          <th>Origin</th>
+          <th>Destination</th>
+        </tr>
+        {% for flight in actives %}
+        <tr>
+          <td>{{flight.active.callsign}}</td>
+          <td>{{flight.active.cid}}</td>
+          <td>{{flight.active.datetime}}</td>
+          <td>{{flight.flight.planned_depairport}}</td>
+          <td>{{flight.flight.planned_destairport}}</td>
+        </tr>
+    </div>
+        {% endfor %}
+    {% else %}
+      <p> There are currently no active flights</p>
+    {% endif %}
+  </body>
+
+</html>

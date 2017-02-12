@@ -15,6 +15,7 @@ class ActiveFlights(models.Model):
 	transponder = models.IntegerField()
 	heading = models.IntegerField()
 	flight_status = models.CharField(max_length=20)
+	flight_id = models.IntegerField()
 	class Meta:
 		unique_together = ("datetime", "callsign", "cid")
 
