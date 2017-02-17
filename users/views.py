@@ -8,6 +8,7 @@ from flights.models import Flights
 # Create your views here.
 
 def index(request):
+    test = "test"
     user_objs = Personal.objects.order_by('-cid')[:30]
     template = loader.get_template('users/index.html')
     context = {
