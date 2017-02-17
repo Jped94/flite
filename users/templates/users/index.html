@@ -1,23 +1,8 @@
+{% extends "flitesite/base.html" %}
 {% load staticfiles %}
+{% block content %}
 <html>
-  <head>
-    <title>Flitesite</title>
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="{% static 'users/mystyle.css' %}">
-  </head>
-
-  <nav class="navbar navbar-default">
-    <div class="container-fluid">
-      <div class="navbar-header">
-        <a class="navbar-brand" href="#">
-          <img alt="Brand" src="{% static 'users/log_logo.png' %}" height="33" width= "89">
-        </a>
-      </div>
-    </div>
-  </nav>
-
-  <body>
+  <body style="padding-top: 70px">
     {% if user_objs %}
 
         <ul>
@@ -31,3 +16,4 @@
     {% endif %}
   </body>
 </html>
+{% endblock %}
