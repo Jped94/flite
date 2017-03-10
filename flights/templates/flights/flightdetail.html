@@ -30,6 +30,9 @@
             <li>{{ req_flight.inGate }}</li>
             <li>{{ req_flight.groundTime }}</li>
         </ul>
+      {% if alti_array %}
+        <h4>Altitude Bitches</h4>
+        <h4>{{alti_array[0]}}
     {% else %}
         <p>There is no flight that matches these criteria.</p>
     {% endif %}

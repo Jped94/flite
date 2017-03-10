@@ -8,7 +8,12 @@ def index(request):
 
 def flightdetail(request, just_date, callsign, cid):
     req_flight = Flights.objects.get(just_date = just_date, callsign = callsign, cid = cid)
-    context = {'req_flight': req_flight}
+    altitude_array = req_flight.get_altitude_array();
+    blah = type(altitude_array[0])
+    context = {
+        'req_flight': req_flight,
+        'alti_array':blah
+    }
     return render (request, 'flights/flightdetail.html', context)
 
 def active(request):

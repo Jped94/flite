@@ -55,6 +55,34 @@ class Flights(models.Model):
 	def __str__(self):
 		return str(self.just_date) + self.callsign + self.cid
 
+	def get_altitude_array(self):
+
+		if (self.altitudeString != ''):
+			print self.altitudeString[0]
+			time = 0
+			altiarray = []
+			comma = 0
+			prev = 0
+			for i in range(0, len(self.altitudeString)):
+				if (self.altitudeString[i] == ";"):
+					comma = i
+					print self.altitudeString[0]
+					altiarray.append(int(self.altitudeString[prev:comma]))
+					prev = i+1
+
+			altiarray.append(int(self.altitudeString[prev:len(self.altitudeString)]))
+
+		else:
+			altiarray = None
+
+
+		return altiarray
+
+
+
+
+
+
 class Aircrafts(models.Model):
 	id = models.IntegerField(primary_key=True)
 	aircraft_type = models.CharField(max_length=1)
