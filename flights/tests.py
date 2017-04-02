@@ -50,6 +50,7 @@ class FlightsMethodTests(TestCase):
             '''
         self.assertEqual(test_flight.get_altitude_array(), altitude_arr)
 
+
     def test_get_rs_array_with_empty_altiarray(self):
         timenow = timezone.datetime.now().time()
         datenow = datetime.datetime.now()
@@ -79,4 +80,6 @@ class FlightsMethodTests(TestCase):
                         	groundTime = models.FloatField(null = True),
                         	altitudeString = ""
                             )
-        altitude_arr = [12,13,25,667,356,3545,5677,10000,15000,20000,25000,30000]
+        altitude_arr = None
+
+        self.assertEqual(test_flight.get_altitude_array(), altitude_arr)

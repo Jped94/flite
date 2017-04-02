@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.template import loader
 from .models import Flights, ActiveFlights
 
@@ -9,10 +9,9 @@ def index(request):
 def flightdetail(request, just_date, callsign, cid):
     req_flight = Flights.objects.get(just_date = just_date, callsign = callsign, cid = cid)
     altitude_array = req_flight.get_altitude_array();
-    blah = type(altitude_array[0])
     context = {
         'req_flight': req_flight,
-        'alti_array':blah
+        'alti_array': altitude_array
     }
     return render (request, 'flights/flightdetail.html', context)
 
@@ -31,4 +30,19 @@ def active(request):
     return render(request, 'flights/active.html', context)
 
 
-# Create your views here.
+def altitude(request, just_date, callsign, cid):
+    req_flight = Flights.objects.get(just_date = just_date, callsign = callsign, cid = cid)
+    altitude_array = req_flight.get_altitude_array();
+    data = []
+    for i, alt in enumerate(altitude_array):
+        obj = {
+            'index': i,
+            'altitude': alt
+        }
+        data.append(obj)
+    return JsonResponse(data, safe=False)
+
+'''
+def altitude(request):
+    return HttpResponse("Yo, this is the index for flights.")
+'''

@@ -1,41 +1,87 @@
 {% extends "flitesite/base.html" %}
 {% load staticfiles %}
 {% block content %}
+
 <html>
   <body style ="padding-top: 70px">
+    <script src="http://d3js.org/d3.v3.js"></script>
+    <style type="text/css">
+          .line {
+              fill: none;
+              stroke: steelblue;
+              stroke-width: 1.5px;
+              }
+          .axis text{
+              font-family:sans-serif;
+              font-size:11px;
+          }
+          .axis path,
+          .axis line{
+            fill:none;
+            stroke:gray;
+            shape-rendering: crisp-edges;
+          }
+    </style>
+    <script>
 
-    {% if req_flight %}
-    <h3>Information for Flight {{ req_flight.callsign }}<h3>
-      <h4>Pilot CID: {{ req_flight.cid }}</h4>
-      <h4>Flight Date: {{ req_flight.just_date }}</h4>
-      <h3> Other Information </h3>
-        <ul class="list-unstyled">
-            <li>{{ req_flight.planned_aircraft }}</li>
-            <li>{{ req_flight.planned_tascruise }}</li>
-            <li>{{ req_flight.planned_depairport }}</li>
-            <li>{{ req_flight.planned_altitude }}</li>
-            <li>{{ req_flight.planned_destairport }}</li>
-            <li>{{ req_flight.planned_deptime }}</li>
-            <li>{{ req_flight.planned_actdeptime }}</li>
-            <li>{{ req_flight.planned_altairport }}</li>
-            <li>{{ req_flight.planned_remarks }}</li>
-            <li>{{ req_flight.planned_route }}</li>
-            <li>{{ req_flight.time_logon }}</li>
-            <li>{{ req_flight.Routestring }}</li>
-            <li>{{ req_flight.duration }}</li>
-            <li>{{ req_flight.total_distance }}</li>
-            <li>{{ req_flight.outRamp }}</li>
-            <li>{{ req_flight.offGround }}</li>
-            <li>{{ req_flight.onGround }}</li>
-            <li>{{ req_flight.inGate }}</li>
-            <li>{{ req_flight.groundTime }}</li>
-        </ul>
-      {% if alti_array %}
-        <h4>Altitude Bitches</h4>
-        <h4>{{alti_array[0]}}
-    {% else %}
-        <p>There is no flight that matches these criteria.</p>
-    {% endif %}
+    var margin = {top: 20, right: 20, bottom: 30, left: 50},
+        width = 960 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
+
+
+    d3.json("{% url 'altitude' just_date=req_flight.just_date|date:'Y-m-d' callsign=req_flight.callsign cid=req_flight.cid %}", function(error, data) {
+      data.forEach(function(d) {
+        d.index = +d.index;
+        d.altitude = +d.altitude;
+      });
+
+      var xScale = d3.scale.linear().range([0,width - 20],.1).nice()
+        .domain([d3.min(data, function(d){return +d.index;}), d3.max(data, function(d){return +d.index;})]);
+
+      var yScale = d3.scale.linear().range([height, 10]).nice()
+      .domain([0,60000]);
+        //.domain([0,d3.max(data, function(d){return +d.altitude;})]);
+
+      var svg = d3.select("body").append("svg")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      var xAxis = d3.svg.axis()
+          .scale(xScale)
+          .orient("bottom");
+
+      var yAxis = d3.svg.axis()
+          .scale(yScale)
+          .orient("left");
+
+      var line = d3.svg.line()
+          .x(function(d) { return xScale(+d.index); })
+          .y(function(d) { return yScale(+d.altitude); });
+
+      console.log (data);
+      svg.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + height + ")")
+          .call(xAxis);
+
+      svg.append("g")
+          .attr("class", "y axis")
+          .call(yAxis)
+        .append("text")
+          .attr("transform", "rotate(-90)")
+          .attr("y", 6)
+          .attr("dy", ".71em")
+          .style("text-anchor", "end");
+
+      svg.append("path")
+          .datum(data)
+          .attr("class", "line")
+          .attr("d", line);
+    });
+
+    </script>
   </body>
 </html>
 {% endblock %}

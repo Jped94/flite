@@ -58,30 +58,22 @@ class Flights(models.Model):
 	def get_altitude_array(self):
 
 		if (self.altitudeString != ''):
-			print self.altitudeString[0]
 			time = 0
 			altiarray = []
 			comma = 0
 			prev = 0
-			for i in range(0, len(self.altitudeString)):
+			for i in range(0, len(self.altitudeString)-1):
 				if (self.altitudeString[i] == ";"):
 					comma = i
-					print self.altitudeString[0]
 					altiarray.append(int(self.altitudeString[prev:comma]))
 					prev = i+1
 
-			altiarray.append(int(self.altitudeString[prev:len(self.altitudeString)]))
+			altiarray.append(int(self.altitudeString[prev:len(self.altitudeString)-1]))
 
 		else:
 			altiarray = None
 
-
 		return altiarray
-
-
-
-
-
 
 class Aircrafts(models.Model):
 	id = models.IntegerField(primary_key=True)
