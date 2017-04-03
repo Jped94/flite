@@ -49,6 +49,7 @@ class Flights(models.Model):
 	inGate = models.DateTimeField(null = True)
 	groundTime = models.FloatField(null = True)
 	altitudeString = models.TextField()
+
 	class Meta:
 		unique_together = ("just_date", "callsign", "cid")
 
@@ -58,7 +59,6 @@ class Flights(models.Model):
 	def get_altitude_array(self):
 
 		if (self.altitudeString != ''):
-			time = 0
 			altiarray = []
 			comma = 0
 			prev = 0
@@ -74,6 +74,27 @@ class Flights(models.Model):
 			altiarray = None
 
 		return altiarray
+
+	def get_routestring_array(self):
+
+		if (self.Routestring != ''):
+			rs = []
+			prev = 0
+			comma = 0
+			end = 0
+			obj = {}
+			for i in range(0, len(self.Routestring)):
+				if (self.Routestring[i] == ","):
+					comma = i
+					obj['lat'] = float(self.Routestring[prev:comma])
+				if (self.Routestring[i] == ";"):
+					end = i
+					obj['lon'] = float(self.Routestring[comma+1:end])
+					prev = end+1
+					rs.append(obj)
+					obj = {}
+
+			return rs
 
 class Aircrafts(models.Model):
 	id = models.IntegerField(primary_key=True)
