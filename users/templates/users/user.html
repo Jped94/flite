@@ -5,6 +5,7 @@
   <body style="padding-top: 70px">
     {% if user_obj %}
         <h3>This is the page for the user with CID {{user_obj.cid}}</h3>
+        <h3>{{gt}}</h3>
 
         <ul class="list-unstyled">
             <li>Name: {{ user_obj.realname }}</li>

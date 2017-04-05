@@ -352,9 +352,7 @@ class Command(NoArgsCommand):
                 except Exception, e:
                     flightstatus = " "
             newActive = ActiveFlights(datetime = update_time, cid = vcid, callsign = vcallsign, clienttype = vclienttype, latitude = lat, longitude = lon, server  = vserver, altitude = valtitude, groundspeed = vgroundspeed, transponder = vtransponder, heading = vheading, flight_status=flightstatus, flight_id = vflight_id)
-            print "starting insert"
             newActive.save()
-            print "ending insert"
 
         try:
             #ActiveFlights.objects.filter(cid = vcid, callsign = vcallsign).exclude(datetime = update_time)

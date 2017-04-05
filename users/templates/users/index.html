@@ -3,11 +3,12 @@
 {% block content %}
 <html>
   <body style="padding-top: 70px">
+    <h2>There are currently {{numOnline}} active pilots</h2>
     {% if user_objs %}
 
         <ul>
-        {% for user in user_objs %}
-            <li><a href="/users/{{ user.cid }}/">{{ user.realname }}</a></li>
+        {% for flight in actives %}
+            <li><a href="/users/{{ flight.cid }}/">{{ flight.cid }}</a></li>
         {% endfor %}
         </ul>
 

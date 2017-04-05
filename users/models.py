@@ -2,6 +2,9 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.conf import settings
+from flights.models import Flights
+import pandas as pd
+import numpy as np
 
 class Personal(models.Model):
 	cid = models.CharField(max_length=30, primary_key=True)
@@ -10,6 +13,16 @@ class Personal(models.Model):
 	atc_rating = models.CharField(max_length=30)
 	def __str__(self):
 		return self.realname
+
+	def get_associated_flights(self):
+		assoc_flights = Flights.objects.filter(cid=self.cid)
+		return assoc_flights
+
+	def get_avg_ground_time(self):
+		flights = Flights.objects.filter(cid=self.cid)
+		flights = pd.DataFrame.from_records(flights.values())
+		flights = flights[(flights['groundTime'].notnull())]
+		return flights['groundTime'].mean()
 
 class ActiveControllers(models.Model):
 	datetime = models.DateTimeField()
