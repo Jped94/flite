@@ -24,10 +24,13 @@ def user_info(request, cid):
     #flights_list = Flights.objects.filter(cid = cid) #.order_by('-just_date')
     flights_list = user_obj.get_associated_flights()
     ground_time = user_obj.get_avg_ground_time()
+    common_airports = user_obj.get_most_common_airport()
     template = loader.get_template('users/user.html')
     context = {
         'user_obj': user_obj,
         'flights_list': flights_list,
-        'gt': ground_time
+        'gt': ground_time,
+        'common_airports': common_airports
+
     }
     return HttpResponse(template.render(context, request))

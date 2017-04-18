@@ -24,6 +24,37 @@ class Personal(models.Model):
 		flights = flights[(flights['groundTime'].notnull())]
 		return flights['groundTime'].mean()
 
+	def get_most_common_airport(self):
+
+		def airportPair(x): #Helper function for commonAirport
+		#having issues here
+			print x
+		'''
+			if (x[12] < x[14]):
+				return (x[12], x[14])
+			else:
+				return (x[14], x[12])
+		'''
+
+		flights = Flights.objects.filter(cid=self.cid)
+		flights = pd.DataFrame.from_records(flights.values())
+		airportpairs = flights[(flights['planned_depairport'] != '') & (flights['planned_destairport'] != '')]
+
+
+		x = airportpairs.apply(airportPair, axis=1).mode()
+		#airports here should be a query to get all airports
+		a = airports[(airports['icao'] == x[0][0])]
+		b = airports[(airports['icao'] == x[0][1])]
+
+		ports_obj = {
+			'airport1': a,
+			'airport2': b
+		}
+
+		return ports_obj
+
+
+
 class ActiveControllers(models.Model):
 	datetime = models.DateTimeField()
 	callsign = models.CharField(max_length=10)
